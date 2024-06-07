@@ -1,6 +1,5 @@
 #include <iostream>
 #include <vector>
-#include <queue>
 #include <chrono>
 #include <cstdlib>
 #include <ctime>
@@ -9,55 +8,66 @@
 using namespace std;
 using namespace std::chrono;
 
-class ArrayQueue {
+struct Node {
+    int data;
+    Node* next;
+};
+
+class LinkedListQueue {
 private:
-    int front, rear, size;
-    unsigned capacity;
-    int* array;
+    Node *front, *rear;
 
 public:
-    ArrayQueue(unsigned capacity) {
-        this->capacity = capacity;
-        front = size = 0;
-        rear = capacity - 1;
-        array = new int[capacity];
+    LinkedListQueue() {
+        front = rear = nullptr;
     }
 
-    ~ArrayQueue() {
-        delete[] array;
+    ~LinkedListQueue() {
+        while (front != nullptr) {
+            Node* temp = front;
+            front = front->next;
+            delete temp;
+        }
     }
 
-    bool isFull() { return (size == capacity); }
-
-    bool isEmpty() { return (size == 0); }
+    bool isEmpty() {
+        return front == nullptr;
+    }
 
     void enqueue(int item) {
-        if (isFull())
+        Node* temp = new Node();
+        temp->data = item;
+        temp->next = nullptr;
+        if (rear == nullptr) {
+            front = rear = temp;
             return;
-        rear = (rear + 1) % capacity;
-        array[rear] = item;
-        size = size + 1;
+        }
+        rear->next = temp;
+        rear = temp;
     }
 
     int dequeue() {
         if (isEmpty())
             return INT_MIN;
-        int item = array[front];
-        front = (front + 1) % capacity;
-        size = size - 1;
+        Node* temp = front;
+        front = front->next;
+        if (front == nullptr)
+            rear = nullptr;
+        int item = temp->data;
+        delete temp;
         return item;
     }
 
     int frontItem() {
         if (isEmpty())
             return INT_MIN;
-        return array[front];
+        return front->data;
     }
 
     int rearItem() {
         if (isEmpty())
             return INT_MIN;
-        return array[rear];
+        return rear->data;
     }
 };
 
@@ -73,7 +83,7 @@ bool isValid(int x, int y, vector<vector<int>>& maze, vector<vector<bool>>& visi
 
 bool bfs(Point start, Point end, vector<vector<int>>& maze) {
     vector<vector<bool>> visited(maze.size(), vector<bool>(maze[0].size(), false));
-    ArrayQueue q(maze.size() * maze[0].size());
+    LinkedListQueue q;
     q.enqueue(start.x * maze[0].size() + start.y);
     visited[start.x][start.y] = true;
 
